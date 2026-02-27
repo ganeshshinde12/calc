@@ -6,14 +6,10 @@ on:
       - main
       - develop
       - feature/**
-  pull_request:
-    branches:
-      - main
 
 jobs:
   sonarqube:
     runs-on: self-hosted
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -24,10 +20,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
-          cache: false 
-
-      - name: Install Dependencies
-        run: go mod tidy
+          cache: false
 
       - name: Run Tests with Coverage
         run: go test ./... -coverprofile=coverage.out
@@ -39,4 +32,10 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.projectKey=calc-${{ github.ref_name }}
+            -Dsonar.projectName="calc (${{ github.ref_name }})"
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/*_test.go,**/vendor/**
+            -Dsonar.tests=.
+            -Dsonar.test.inclusions=**/*_test.go
+            -Dsonar.go.coverage.reportPaths=coverage.out
